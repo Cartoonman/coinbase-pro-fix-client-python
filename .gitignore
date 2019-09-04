@@ -102,3 +102,13 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+# Apple Desktop Caches
+*.DS_Store
+
+# Python eggs
+.egg-info
+
+# Python binaries
+__pycache__
+*.pyc

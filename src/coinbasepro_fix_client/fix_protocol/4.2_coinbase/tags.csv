@@ -1,0 +1,407 @@
+FIX_id,FIX_name,FIX_type,FIX_description
+1,Account,string,Account mnemonic as agreed between broker and institution.
+2,AdvId,string,Unique identifier of Advertisement (7) message.
+3,AdvRefID,string,Reference identifier used with CANCEL and REPLACE transaction types.
+4,AdvSide,char,Broker's side of advertised trade
+5,AdvTransType,string,Identifies Advertisement (7) message transaction type
+6,AvgPx,price,Calculated average price of all fills on this order.
+7,BeginSeqNo,int,Message sequence number of first message in range to be resent
+8,BeginString,string,Identifies beginning of new message and protocol version. ALWAYS FIRST FIELD IN MESSAGE. (Always unencrypted)
+9,BodyLength,int,"Message length, in bytes, is verified by counting the number of characters in the message following the BodyLength (9) field up to, and including, the delimiter immediately preceding the CheckSum (10) field. ALWAYS SECOND FIELD IN MESSAGE. (Always unencrypted) For example, for message 8=FIX 4.4^9=5^35=0^10=10^, the BodyLength is 5 for 35=0^"
+10,CheckSum,string,"Three byte, simple checksum (see Appendix B: CheckSum Calculation of FIX Specificationfor description). ALWAYS LAST FIELD IN MESSAGE; i.e. serves, with the trailing <SOH>, as the end-of-message delimiter. Always defined as three characters. (Always unencrypted)"
+11,ClOrdID,string,"Unique identifier for Order as assigned by institution (identified by SenderCompID (49) or OnBehalfOfCompID (115) as appropriate). Uniqueness must be guaranteed within a single trading day. Firms, particularly those which electronically submit multi-day orders, trade globally or throughout market close periods, should ensure uniqueness across days, for example by embedding a date within the ClOrdID (11) field."
+12,Commission,amt,"Commission. Note if CommType (13) is percentage, Commission of 5% should be represented as .05."
+13,CommType,char,Commission type
+14,CumQty,qty,Total number of shares filled.
+15,Currency,currency,Identifies currency used for price. Absence of this field is interpreted as the default for the security. It is recommended that systems provide the currency value whenever possible.
+16,EndSeqNo,int,"Message sequence number of last message in range to be resent. If request is for a single message BeginSeqNo (7) = EndSeqNo (16) . If request is for all messages subsequent to a particular message, EndSeqNo (16) = '0' (representing infinity)."
+17,ExecID,string,Unique identifier of Execution Report (8) message as assigned by broker (will be 0 (zero) for ExecTransType (20) =3 (Status)).
+18,ExecInst,mutiplevaluestring,"Instructions for order handling on exchange trading floor. If more than one instruction is applicable to an order, this field can contain multiple instructions separated by space."
+19,ExecRefID,string,Reference identifier used with Cancel and Correct transaction types.
+20,ExecTransType,char,Identifies transaction type
+21,HandlInst,char,Instructions for order handling on Broker trading floor
+22,IDSource,string,Identifies class of alternative SecurityID (48)
+23,IOIid,string,Unique identifier of Indication of Interest (6) message.
+25,IOIQltyInd,char,Relative quality of indication
+26,IOIRefID,string,"Reference identifier used with CANCEL and REPLACE, transaction types."
+27,IOIShares,string,Number of shares in numeric or relative size.
+28,IOITransType,char,Identifies Indication of Interest (6) message transaction type
+29,LastCapacity,char,Broker capacity in order execution
+30,LastMkt,exchange,Market of execution for last fill
+31,LastPx,price,Price of this (last) fill. Field not required for ExecTransType (20) = 3 (Status)
+32,LastShares,qty,Quantity of shares bought/sold on this (last) fill. Field not required for ExecTransType (20)= 3 (Status)
+33,LinesOfText,int,Identifies number of lines of text body
+34,MsgSeqNum,int,Integer message sequence number.
+35,MsgType,string,Defines message type. ALWAYS THIRD FIELD IN MESSAGE. (Always unencrypted)
+36,NewSeqNo,int,New sequence number
+37,OrderID,string,Unique identifier for Order as assigned by broker. Uniqueness must be guaranteed within a single trading day. Firms which accept multi-day orders should consider embedding a date within the OrderID (37) field to assure uniqueness across days.
+38,OrderQty,qty,"Number of shares ordered. This represents the number of shares for equities or based on normal convention the number of contracts for options, futures, convertible bonds, etc."
+39,OrdStatus,char,Identifies current status of order.
+40,OrdType,char,Order type.
+41,OrigClOrdID,string,"ClOrdID (11) of the previous order (NOT the initial order of the day) as assigned by the institution, used to identify the previous order in cancel and cancel/replace requests."
+42,OrigTime,utctimestamp,"Time of message origination (always expressed in UTC (Universal Time Coordinated, also known as 'GMT'))"
+43,PossDupFlag,bool,Indicates possible retransmission of message with this sequence number
+44,Price,price,Price per share
+45,RefSeqNum,int,Reference message sequence number
+46,RelatdSym,string,Symbol of issue related to story. Can be repeated within message to identify multiple companies.
+47,Rule80A(aka OrderCapacity),char,"Note that the name of this field is changing to 'OrderCapacity' as Rule80A is a very US market-specific term. Other world markets need to convey similar information, however, often a subset of the US values. See the 'Rule80A (aka OrderCapacity) Usage by Market' appendix for market-specific usage of this field."
+48,SecurityID,string,CUSIP or other alternate security identifier
+49,SenderCompID,string,Assigned value used to identify firm sending message.
+50,SenderSubID,string,"Assigned value used to identify specific message originator (desk, trader, etc.)"
+52,SendingTime,utctimestamp,"Time of message transmission (always expressed in UTC (Universal Time Coordinated, also known as 'GMT')"
+53,Shares,qty,Number of shares
+54,Side,char,Side of order
+55,Symbol,string,Ticker symbol
+56,TargetCompID,string,Assigned value used to identify receiving firm.
+57,TargetSubID,string,Assigned value used to identify specific individual or unit intended to receive message. 'ADMIN' reserved for administrative messages not intended for a specific user.
+58,Text,string,Free format text string
+59,TimeInForce,char,(Coinbase Mod) Specifies how long the order remains in effect. 1: Good Till Cancel, 3: Immediate or Cancel, 4: Fill or Kill, P: Post-Only. The post-only flag (P) indicates that the order should only make liquidity. If any part of the order results in taking liquidity, the order will be rejected and no part of it will execute. Open Post-Only orders will be treated as Good Till Cancel.
+60,TransactTime,utctimestamp,"Time of execution/order creation (expressed in UTC (Universal Time Coordinated), also known as 'GMT')"
+61,Urgency,char,Urgency flag
+62,ValidUntilTime,utctimestamp,"Indicates expiration time of indication message (always expressed in UTC (Universal Time Coordinated), also known as 'GMT')"
+63,SettlmntTyp,char,Indicates order settlement period. Absence of this field is interpreted as Regular. Regular is defined as the default settlement period for the particular security on the exchange of execution.
+64,FutSettDate,localmktdate,Specific date of trade settlement (SettlementDate) in YYYYMMDD format. Required when SettlmntTyp (63) = 6 (Future) or SettlmntTyp (63) = 8 (Sellers Option).
+65,SymbolSfx,string,"Additional information about the security (e.g. preferred, warrants, etc.). Note also see SecurityType (167) . Valid values: As defined in the NYSE Stock and bond Symbol Directory and in the AMEX Fitch Directory"
+66,ListID,string,"Unique identifier for list as assigned by institution, used to associate multiple individual orders. Uniqueness must be guaranteed within a single trading day. Firms which generate multi-day orders should consider embedding a date within the ListID (66) field to assure uniqueness across days."
+67,ListSeqNo,int,"Sequence of individual order within list (i.e. ListSeqNo (67) of TotNoOrders (68) , 2 of 25, 3 of 25, . . . )"
+68,TotNoOrders(formerly named: ListNoOrds),int,(formerly named: ListNoOrds) Total number of list order entries across all messages. Should be the sum of all NoOrders (73) in each message that has repeating list order entries related to the same ListID (66) . Used to support fragmentation.
+69,ListExecInst,string,Free format text message containing list handling and execution instructions.
+70,AllocID,string,Unique identifier for Allocation (J) message.
+71,AllocTransType,char,Identifies allocation transaction type
+72,RefAllocID,string,"Reference identifier to be used with Replace, Cancel, and Calculated AllocTransType (71)messages."
+73,NoOrders,int,Indicates number of orders to be combined for average pricing and allocation.
+74,AvgPrxPrecision,int,Indicates number of decimal places to be used for average pricing. Absence of this field indicates that default precision arranged by the broker/institution is to be used.
+75,TradeDate,localmktdate,Indicates date of trade referenced in this message in YYYYMMDD format. Absence of this field indicates current day (expressed in local time at place of trade).
+76,ExecBroker,string,Identifies executing / give-up broker. Standard NASD market-maker mnemonic is preferred.
+77,OpenClose,char,Indicates whether the resulting position after a trade should be an opening position or closing position. Used for omnibus accounting - where accounts are held on a gross basis instead of being netted together.
+78,NoAllocs,int,Number of repeating AllocAccount (79) / AllocPrice (366) entries.
+79,AllocAccount,string,Sub-account mnemonic
+80,AllocShares,qty,Number of shares to be allocated to specific sub-account
+81,ProcessCode,char,Processing code for sub-account. Absence of this field in AllocAccount (79) / AllocPrice (366) / AllocQty (80) / ProcessCode (81) instance indicates regular trade.
+82,NoRpts,int,Total number of reports within series.
+83,RptSeq,int,Sequence number of message within report series.
+84,CxlQty,qty,Total number of shares canceled for this order.
+87,AllocStatus,int,Identifies status of allocation.
+88,AllocRejCode,int,Identifies reason for rejection.
+89,Signature,data,Electronic signature
+90,SecureDataLen,int,Length of encrypted message
+91,SecureData,data,Actual encrypted data stream
+92,BrokerOfCredit,string,Broker to receive trade credit.
+93,SignatureLength,int,Number of bytes in signature field.
+94,EmailType,char,Email message type.
+95,RawDataLength,int,Number of bytes in raw data field.
+96,RawData,data,"Unformatted raw data, can include bitmaps, word processor documents, etc."
+97,PossResend,bool,Indicates that message may contain information that has been sent under another sequence number. Valid Values: Y=Possible resend N=Original transmission
+98,EncryptMethod,int,Method of encryption.
+99,StopPx,price,Price per share
+100,ExDestination,exchange,Execution destination as defined by institution when order is entered.
+102,CxlRejReason,int,Code to identify reason for cancel rejection.
+103,OrdRejReason,int,Code to identify reason for order rejection.
+104,IOIQualifier,char,Code to qualify Indication of Interest (6) use.
+105,WaveNo,string,"Identifier to aid in the management of multiple lists derived from a single, master list."
+106,Issuer,string,Company name of security issuer (e.g. International Business Machines)
+107,SecurityDesc,string,Security description.
+108,HeartBtInt,int,Heartbeat interval (seconds)
+109,ClientID,string,Firm identifier used in third party-transactions (should not be a substitute for OnBehalfOfCompID (115) / DeliverToCompID (128) ).
+110,MinQty,qty,Minimum quantity of an order to be executed.
+111,MaxFloor,qty,Maximum number of shares within an order to be shown on the exchange floor at any given time.
+112,TestReqID,string,Identifier included in Test Request (1) message to be returned in resulting Heartbeat (0)
+113,ReportToExch,bool,Identifies party of trade responsible for exchange reporting.
+114,LocateReqd,bool,Indicates whether the broker is to locate the stock in conjunction with a short sell order.
+115,OnBehalfOfCompID,string,Assigned value used to identify firm originating message if the message was delivered by a third party i.e. the third party firm identifier would be delivered in the SenderCompID (49)field and the firm originating the message in this field.
+116,OnBehalfOfSubID,string,Assigned value used to identify specific message originator (i.e. trader) if the message was delivered by a third party
+117,QuoteID,string,Unique identifier for quote
+118,NetMoney,amt,Total amount due as the result of the transaction (e.g. for Buy order - principal + commission + fees) reported in currency of execution.
+119,SettlCurrAmt,amt,Total amount due expressed in settlement currency (includes the effect of the forex transaction)
+120,SettlCurrency,currency,Currency code of settlement denomination.
+121,ForexReq,bool,Indicates request for forex accommodation trade to be executed along with security transaction.
+122,OrigSendingTime,utctimestamp,"Original time of message transmission (always expressed in UTC (Universal Time Coordinated, also known as 'GMT') when transmitting orders as the result of a resend request."
+123,GapFillFlag,bool,Indicates that the Sequence Reset (4) message is replacing administrative or application messages which will not be resent.
+124,NoExecs,int,No of execution repeating group entries to follow.
+126,ExpireTime,utctimestamp,"Time/Date of order expiration (always expressed in UTC (Universal Time Coordinated, also known as 'GMT')"
+127,DKReason,char,Reason for execution rejection.
+128,DeliverToCompID,string,Assigned value used to identify the firm targeted to receive the message if the message is delivered by a third party i.e. the third party firm identifier would be delivered in the TargetCompID (56) field and the ultimate receiver firm ID in this field.
+129,DeliverToSubID,string,Assigned value used to identify specific message recipient (i.e. trader) if the message is delivered by a third party
+130,IOINaturalFlag,bool,"Indicates that Indication of Interest (6) is the result of an existing agency order or a facilitation position resulting from an agency order, not from principal trading or order solicitation activity."
+131,QuoteReqID,string,Unique identifier for Quote Request (R)
+132,BidPx,price,Bid price/rate
+133,OfferPx,price,Offer price/rate
+134,BidSize,qty,Quantity of bid
+135,OfferSize,qty,Quantity of offer
+136,NoMiscFees,int,Number of repeating groups of miscellaneous fees
+137,MiscFeeAmt,amt,Miscellaneous fee value
+138,MiscFeeCurr,currency,Currency of miscellaneous fee
+139,MiscFeeType,char,Indicates type of miscellaneous fee.
+140,PrevClosePx,price,Previous closing price of security.
+141,ResetSeqNumFlag,bool,Indicates that the both sides of the FIX session should reset sequence numbers.
+142,SenderLocationID,string,"Assigned value used to identify specific message originator's location (i.e. geographic location and/or desk, trader)"
+143,TargetLocationID,string,"Assigned value used to identify specific message destination's location (i.e. geographic location and/or desk, trader)"
+144,OnBehalfOfLocationID,string,"Assigned value used to identify specific message originator's location (i.e. geographic location and/or desk, trader) if the message was delivered by a third party"
+145,DeliverToLocationID,string,"Assigned value used to identify specific message recipient's location (i.e. geographic location and/or desk, trader) if the message was delivered by a third party"
+146,NoRelatedSym,int,Specifies the number of repeating symbols specified.
+147,Subject,string,The subject of an Email (C) message
+148,Headline,string,The headline of a News (B) message
+149,URLLink,string,A URL (Uniform Resource Locator) link to additional information (i.e. http://en.wikipedia.org/wiki/Uniform_Resource_Locator )
+150,ExecType,char,Describes the specific Execution Report (8) (i.e. Pending Cancel) while OrdStatus (39) will always identify the current order status (i.e. Partially Filled)
+151,LeavesQty,qty,"Amount of shares open for further execution. If the OrdStatus (39) is Canceled, DoneForTheDay, Expired, Calculated, or Rejected (in which case the order is no longer active) then LeavesQty (151) could be 0, otherwise LeavesQty (151) = OrderQty (38) - CumQty (14) ."
+152,CashOrderQty,qty,Specifies the approximate order quantity desired in total monetary units vs. as a number of shares. The broker would be responsible for converting and calculating a share quantity ( OrderQty (38) ) based upon this amount to be used for the actual order and subsequent messages.
+153,AllocAvgPx,price,AvgPx (6) for a specific AllocAccount (79)
+154,AllocNetMoney,amt,NetMoney (118) for a specific AllocAccount (79)
+155,SettlCurrFxRate,float,Foreign exchange rate used to compute SettlCurrAmt (119) from Currency (15) to SettlCurrency (120)
+156,SettlCurrFxRateCalc,char,Specifies whether or not SettlCurrFxRate (155) should be multiplied or divided.
+157,NumDaysInterest,int,Number of Days of Interest for convertible bonds and fixed income
+158,AccruedInterestRate,float,Accrued Interest Rate for convertible bonds and fixed income
+159,AccruedInterestAmt,amt,Amount of Accrued Interest for convertible bonds and fixed income
+160,SettlInstMode,char,Indicates mode used for Settlement Instructions
+161,AllocText,string,Free format text related to a specific AllocAccount (79) .
+162,SettlInstID,string,Unique identifier for Settlement Instructions (T) message.
+163,SettlInstTransType,char,Settlement Instructions (T) message transaction type
+164,EmailThreadID,string,Unique identifier for an email thread (new and chain of replies)
+165,SettlInstSource,char,Indicates source of Settlement Instructions (T)
+166,SettlLocation,string,Identifies Settlement Depository or Country Code (ISITC spec)
+167,SecurityType,string,Indicates type of security (ISITC spec)
+168,EffectiveTime,utctimestamp,"Time the details within the message should take effect (always expressed in UTC (Universal Time Coordinated, also known as 'GMT')"
+169,StandInstDbType,int,Identifies the Standing Instruction database used
+170,StandInstDbName,string,Name of the Standing Instruction database represented with StandInstDbType (169) (i.e. the Global Custodian's name).
+171,StandInstDbID,string,Unique identifier used on the Standing Instructions database for the Standing Instructions to be referenced.
+172,SettlDeliveryType,int,Identifies type of settlement
+173,SettlDepositoryCode,string,"Broker's account code at the depository (i.e. CEDEL ID for CEDEL, FINS for DTC, or Euroclear ID for Euroclear) if SettlLocation is a depository"
+174,SettlBrkrCode,string,BIC (Bank Identification Code-Swift managed) code of the broker involved (i.e. for multi-company brokerage firms)
+175,SettlInstCode,string,BIC (Bank Identification Code-Swift managed) code of the institution involved (i.e. for multi-company institution firms)
+176,SecuritySettlAgentName,string,Name of SettlInstSource's local agent bank if SettlLocation (166) is not a depository
+177,SecuritySettlAgentCode,string,BIC (Bank Identification Code-Swift managed) code of the SettlInstSource's local agent bank if SettlLocation (166) is not a depository
+178,SecuritySettlAgentAcctNum,string,SettlInstSource's account number at local agent bank if SettlLocation (166) is not a depository
+179,SecuritySettlAgentAcctName,string,Name of SettlInstSource's account at local agent bank if SettlLocation (166) is not a depository
+180,SecuritySettlAgentContactName,string,Name of contact at local agent bank for SettlInstSource's account if SettlLocation (166) is not a depository
+181,SecuritySettlAgentContactPhone,string,Phone number for contact at local agent bank if SettlLocation (166) is not a depository
+182,CashSettlAgentName,string,Name of SettlInstSource's local agent bank if SettlDeliveryType (172) =Free
+183,CashSettlAgentCode,string,BIC (Bank Identification Code-Swift managed) code of the SettlInstSource's local agent bank if SettlDeliveryType (172) =Free
+184,CashSettlAgentAcctNum,string,SettlInstSource's account number at local agent bank if SettlDeliveryType (172) =Free
+185,CashSettlAgentAcctName,string,Name of SettlInstSource's account at local agent bank if SettlDeliveryType (172) =Free
+186,CashSettlAgentContactName,string,Name of contact at local agent bank for SettlInstSource's account if SettlDeliveryType (172) =Free
+187,CashSettlAgentContactPhone,string,Phone number for contact at local agent bank for SettlInstSource's account if SettlDeliveryType (172) =Free
+188,BidSpotRate,price,Bid F/X spot rate.
+189,BidForwardPoints,priceoffset,Bid F/X forward points added to spot rate. May be a negative value.
+190,OfferSpotRate,price,Offer F/X spot rate.
+191,OfferForwardPoints,priceoffset,Offer F/X forward points added to spot rate. May be a negative value.
+192,OrderQty2,qty,OrderQty (38) of the future part of a F/X swap order.
+193,FutSettDate2,localmktdate,FutSettDate (64) of the future part of a F/X swap order.
+194,LastSpotRate,price,F/X spot rate.
+195,LastForwardPoints,priceoffset,F/X forward points added to LastSpotRate (194) . May be a negative value.
+196,AllocLinkID,string,"Can be used to link two different Allocation (J) messages (each with unique AllocID (70) ) together, i.e. for F/X 'Netting' or 'Swaps'. Should be unique."
+197,AllocLinkType,int,Identifies the type of Allocation (J) linkage when AllocLinkID (196) is used.
+198,SecondaryOrderID,string,Assigned by the party which accepts the order. Can be used to provide the OrderID (37)used by an exchange or executing system.
+199,NoIOIQualifiers,int,Number of repeating groups of IOIQualifiers.
+200,MaturityMonthYear,month-year,Month and Year of the maturity for SecurityType (167) =FUT or SecurityType (167) =OPT. Required if MaturityDay is specified. Format: YYYYMM (i.e. 199903)
+201,PutOrCall,int,Indicates whether an Option is for a put or call.
+202,StrikePrice,price,Strike Price for an Option.
+203,CoveredOrUncovered,int,Used for options
+204,CustomerOrFirm,int,Used for options when delivering the order to an execution system/exchange to specify if the order is for a customer or the firm placing the order itself.
+205,MaturityDay,day-of-month,Day of month used in conjunction with MaturityMonthYear (200) to specify the maturity date for SecurityType (167) =FUT or SecurityType (167) =OPT.
+206,OptAttribute,char,"Can be used for SecurityType (167) =OPT to identify a particular security. Valid values vary by SecurityExchange: For Exchange: MONEP (Paris) L = Long (a.k.a. 'American') S = Short (a.k.a. 'European') For Exchanges: DTB (Frankfurt), HKSE (Hong Kong), and SOFFEX (Zurich) 0-9 = single digit 'version' number assigned by exchange following capital adjustments (0=current, 1=prior, 2=prior to 1, etc)."
+207,SecurityExchange,exchange,Market used to help identify a security.
+208,NotifyBrokerOfCredit,bool,Indicates whether or not details should be communicated to BrokerOfCredit (92) (i.e. step-in broker).
+209,AllocHandlInst,int,Indicates how the receiver (i.e. third party) of Allocation (J) message should handle/process the account details.
+210,MaxShow,qty,Maximum number of shares within an order to be shown to other customers (i.e. sent via an Indication of Interest (6) ).
+211,PegDifference,priceoffset,Amount (signed) added to the price of the peg for a pegged order.
+212,XmlDataLen,int,Length of the XmlData (213) data block.
+213,XmlData,data,Actual XML data stream (e.g. FIXML). See appropriate XML reference (e.g. FIXML). Note: may contain embedded SOH characters.
+214,SettlInstRefID,string,Reference identifier for the SettlInstID (162) with Cancel and Replace SettlInstTransType (163) transaction types.
+215,NoRoutingIDs,int,Number of repeating groups of RoutingID (217) and RoutingType (216) values.
+216,RoutingType,int,Indicates the type of RoutingID (217) specified.
+217,RoutingID,string,Assigned value used to identify a specific routing destination.
+218,SpreadToBenchmark,price,For Fixed Income. Basis points relative to a benchmark. To be expressed as 'count of basis points' (vs. an absolute value). E.g. High Grade Corporate Bonds may express price as basis points relative to benchmark (the Benchmark field). Note: Basis points can be negative.
+219,Benchmark,char,For Fixed Income. Identifies the benchmark (e.g. used in conjunction with the SpreadToBenchmark (218) field).
+223,CouponRate,float,For Fixed Income. Coupon rate of the bond. Will be zero for step-up bonds.
+231,ContractMultiplier,float,"Specifies the ratio or multiply factor to convert from contracts to shares (e.g. 1.0, 100, 1000, etc). Applicable For Fixed Income, Convertible Bonds, Derivatives, etc. Note: If used, quantities should be expressed in the 'nominal' (e.g. contracts vs. shares) amount."
+262,MDReqID,string,Unique identifier for Market Data Request (V)
+263,SubscriptionRequestType,char,Subscription Request Type
+264,MarketDepth,int,Depth of market for Book Snapshot
+265,MDUpdateType,int,Specifies the type of Market Data update.
+266,AggregatedBook,bool,Specifies whether or not book entries should be aggregated. If not specified - broker option
+267,NoMDEntryTypes,int,Number of MDEntryType (269) fields requested.
+268,NoMDEntries,int,Number of entries in Market Data message.
+269,MDEntryType,char,Type Market Data entry.
+270,MDEntryPx,price,Price of the Market Data Entry.
+271,MDEntrySize,qty,Number of shares represented by the Market Data Entry.
+272,MDEntryDate,utcdate,Date of Market Data Entry.
+273,MDEntryTime,utctimeonly,Time of Market Data Entry.
+274,TickDirection,char,Direction of the 'tick'.
+275,MDMkt,exchange,Market posting quote / trade.
+276,QuoteCondition,multiplevaluestring,Space-delimited list of conditions describing a quote.
+277,TradeCondition,multiplevaluestring,Space-delimited list of conditions describing a trade
+278,MDEntryID,string,Unique Market Data Entry identifier.
+279,MDUpdateAction,char,Type of Market Data update action.
+280,MDEntryRefID,string,Refers to a previous MDEntryID (278) .
+281,MDReqRejReason,char,Reason for the rejection of a Market Data Request (V) .
+282,MDEntryOriginator,string,Originator of a Market Data Entry
+283,LocationID,string,Identification of a Market Maker's location
+284,DeskID,string,Identification of a Market Maker's desk
+285,DeleteReason,char,Reason for deletion.
+286,OpenCloseSettleFlag,char,Flag that identifies a price.
+287,SellerDays,int,Specifies the number of days that may elapse before delivery of the security
+288,MDEntryBuyer,string,Buying party in a trade
+289,MDEntrySeller,string,Selling party in a trade
+290,MDEntryPositionNo,int,"Display position of a bid or offer, numbered from most competitive to least competitive, per market side, beginning with 1."
+291,FinancialStatus,char,Identifies a firm's financial status.
+292,CorporateAction,char,Identifies the type of Corporate Action.
+293,DefBidSize,qty,Default Bid Size.
+294,DefOfferSize,qty,Default Offer Size.
+295,NoQuoteEntries,int,The number of quote entries for a QuoteSet.
+296,NoQuoteSets,int,The number of sets of quotes in the message.
+297,QuoteAckStatus,int,Identifies the status of the quote acknowledgement.
+298,QuoteCancelType,int,Identifies the type of quote cancel.
+299,QuoteEntryID,string,Uniquely identifies the quote as part of a QuoteSet.
+300,QuoteRejectReason,int,Reason quote was rejected.
+301,QuoteResponseLevel,int,Level of Response requested from receiver of Quote (S) messages.
+302,QuoteSetID,string,Unique id for the QuoteSet.
+303,QuoteRequestType,int,Indicates the type of Quote Request (R) being generated
+304,TotQuoteEntries,int,Total number of quotes for the QuoteSet across all messages. Should be the sum of all NoQuoteEntries (295) in each message that has repeating quotes that are part of the same QuoteSet.
+305,UnderlyingIDSource,string,Underlying security's IDSource. See IDSource (22) field for description
+306,UnderlyingIssuer,string,Underlying security's Issuer. See Issuer (106) field for description
+307,UnderlyingSecurityDesc,string,Underlying security's SecurityDesc. See SecurityDesc (107) field for description
+308,UnderlyingSecurityExchange,exchange,Underlying security's SecurityExchange. Can be used to identify the underlying security.
+309,UnderlyingSecurityID,string,Underlying security's SecurityID. See SecurityID (48) field for description
+310,UnderlyingSecurityType,string,Underlying security's SecurityType. See SecurityType (167) field for description
+311,UnderlyingSymbol,string,Underlying security's Symbol. See Symbol (55) field for description
+312,UnderlyingSymbolSfx,string,Underlying security's SymbolSfx. See SymbolSfx (65) field for description
+313,UnderlyingMaturityMonthYear,month-year,Underlying security's MaturityMonthYear. Required if UnderlyingMaturityDay (314) is specified. See MaturityMonthYear (200) field for description
+314,UnderlyingMaturityDay,day-of-month,Underlying security's MaturityDay. See MaturityDay (205) field for description
+315,UnderlyingPutOrCall,int,Underlying security's PutOrCall. See PutOrCall (201) field for description
+316,UnderlyingStrikePrice,price,Underlying security's StrikePrice. See StrikePrice (202) field for description
+317,UnderlyingOptAttribute,char,Underlying security's OptAttribute. See OptAttribute (206) field for description
+318,Underlying Currency,currency,Underlying security's Currency. See Currency (15) field for description and valid values
+319,RatioQty,qty,Quantity of a particular leg in the security.
+320,SecurityReqID,string,Unique ID of a Security Definition Request (c) .
+321,SecurityRequestType,int,Type of Security Definition Request (c) .
+322,SecurityResponseID,string,Unique ID of a Security Definition (d) message.
+323,SecurityResponseType,int,Type of Security Definition (d) message response.
+324,SecurityStatusReqID,string,Unique ID of a Security Status Request (e) message.
+325,UnsolicitedIndicator,bool,Indicates whether or not message is being sent as a result of a subscription request or not.
+326,SecurityTradingStatus,int,Identifies the trading status applicable to the transaction.
+327,HaltReason,char,Denotes the reason for the Opening Delay or Trading Halt.
+328,InViewOfCommon,bool,Indicates whether or not the halt was due to Common Stock trading being halted.
+329,DueToRelated,bool,Indicates whether or not the halt was due to the Related Security being halted.
+330,BuyVolume,qty,Number of shares bought.
+331,SellVolume,qty,Number of shares sold.
+332,HighPx,price,Represents an indication of the high end of the price range for a security prior to the open or reopen
+333,LowPx,price,Represents an indication of the low end of the price range for a security prior to the open or reopen
+334,Adjustment,int,Identifies the type of adjustment.
+335,TradSesReqID,string,Unique ID of a Trading Session Status (h) message.
+336,TradingSessionID,string,Identifier for Trading Session.
+337,ContraTrader,string,"Identifies the trader (e.g. ""badge number"") of the ContraBroker (375) ."
+338,TradSesMethod,int,Method of trading
+339,TradSesMode,int,Trading Session Mode
+340,TradSesStatus,int,State of the trading session.
+341,TradSesStartTime,utctimestamp,Starting time of the trading session
+342,TradSesOpenTime,utctimestamp,Time of the opening of the trading session
+343,TradSesPreCloseTime,utctimestamp,Time of the pre-closed of the trading session
+344,TradSesCloseTime,utctimestamp,Closing time of the trading session
+345,TradSesEndTime,utctimestamp,End time of the trading session
+346,NumberOfOrders,int,Number of orders in the market.
+347,MessageEncoding,string,"Type of message encoding (non-ASCII (non-English) characters) used in a message's ""Encoded"" fields."
+348,EncodedIssuerLen,int,Byte length of encoded (non-ASCII characters) EncodedIssuer (349) field.
+349,EncodedIssuer,data,"Encoded (non-ASCII characters) representation of the Issuer (106) field in the encoded format specified via the MessageEncoding field. If used, the ASCII (English) representation should also be specified in the Issuer (106) field."
+350,EncodedSecurityDescLen,int,Byte length of encoded (non-ASCII characters) EncodedSecurityDesc (351) field.
+351,EncodedSecurityDesc,data,"Encoded (non-ASCII characters) representation of the SecurityDesc (107) field in the encoded format specified via the MessageEncoding (347) field. If used, the ASCII (English) representation should also be specified in the SecurityDesc (107) field."
+352,EncodedListExecInstLen,int,Byte length of encoded (non-ASCII characters) EncodedListExecInst (353) field.
+353,EncodedListExecInst,data,"Encoded (non-ASCII characters) representation of the ListExecInst (69) field in the encoded format specified via the MessageEncoding (347) field. If used, the ASCII (English) representation should also be specified in the ListExecInst (69) field."
+354,EncodedTextLen,int,Byte length of encoded (non-ASCII characters) EncodedText (355) field.
+355,EncodedText,data,"Encoded (non-ASCII characters) representation of the Text (58) field in the encoded format specified via the MessageEncoding (347) field. If used, the ASCII (English) representation should also be specified in the Text (58) field."
+356,EncodedSubjectLen,int,Byte length of encoded (non-ASCII characters) EncodedSubject (357) field.
+357,EncodedSubject,data,"Encoded (non-ASCII characters) representation of the Subject (147) field in the encoded format specified via the MessageEncoding (347) field. If used, the ASCII (English) representation should also be specified in the Subject (147) field."
+358,EncodedHeadlineLen,int,Byte length of encoded (non-ASCII characters) EncodedHeadline (359) field.
+359,EncodedHeadline,data,"Encoded (non-ASCII characters) representation of the Headline (148) field in the encoded format specified via the MessageEncoding (347) field. If used, the ASCII (English) representation should also be specified in the Headline (148) field."
+360,EncodedAllocTextLen,int,Byte length of encoded (non-ASCII characters) EncodedAllocText (361) field.
+361,EncodedAllocText,data,"Encoded (non-ASCII characters) representation of the AllocText (161) field in the encoded format specified via the MessageEncoding (347) field. If used, the ASCII (English) representation should also be specified in the AllocText (161) field."
+362,EncodedUnderlyingIssuerLen,int,Byte length of encoded (non-ASCII characters) EncodedUnderlyingIssuer (363) field.
+363,EncodedUnderlyingIssuer,data,"Encoded (non-ASCII characters) representation of the UnderlyingIssuer (306) field in the encoded format specified via the MessageEncoding (347) field. If used, the ASCII (English) representation should also be specified in the UnderlyingIssuer (306) field."
+364,EncodedUnderlyingSecurityDescLen,int,Byte length of encoded (non-ASCII characters) EncodedUnderlyingSecurityDesc (365) field.
+365,EncodedUnderlyingSecurityDesc,data,"Encoded (non-ASCII characters) representation of the UnderlyingSecurityDesc (307) field in the encoded format specified via the MessageEncoding (347) field. If used, the ASCII (English) representation should also be specified in the UnderlyingSecurityDesc (307) field."
+366,AllocPrice,price,"Executed price for an AllocAccount (79) entry used when using ""executed price"" vs. ""average price"" allocations (e.g. Japan)."
+367,QuoteSetValidUntilTime,utctimestamp,"Indicates expiration time of this particular QuoteSet (always expressed in UTC (Universal Time Coordinated, also known as 'GMT')"
+368,QuoteEntryRejectReason,int,Reason Quote Entry was rejected:
+369,LastMsgSeqNumProcessed,int,The last MsgSeqNum (34) value received and processed. Can be specified on every message sent. Useful for detecting a backlog with a counterparty.
+370,OnBehalfOfSendingTime,utctimestamp,"Used when a message is sent via a ""hub"" or ""service bureau"". If A sends to Q (the hub) who then sends to B via a separate FIX session, then when Q sends to B the value of this field should represent the SendingTime (52) on the message A sent to Q. (always expressed in UTC (Universal Time Coordinated, also known as ""GMT"")"
+371,RefTagID,int,The tag number of the FIX field being referenced.
+372,RefMsgType,string,The MsgType (35) of the FIX message being referenced.
+373,SessionRejectReason,int,Code to identify reason for a session-level Reject (3) message.
+374,BidRequestTransType,char,Identifies the Bid Request (k) message type.
+375,ContraBroker,string,Identifies contra broker. Standard NASD market-maker mnemonic is preferred.
+376,ComplianceID,string,ID used to represent this transaction for compliance purposes (e.g. OATS reporting).
+377,SolicitedFlag,bool,Indicates whether or not the order was solicited.
+378,ExecRestatementReason,int,Code to identify reason for an Execution Report (8) message sent with ExecType (150)=Restated or used when communicating an unsolicited cancel.
+379,BusinessRejectRefID,string,The value of the business-level 'ID' field on the message being referenced.
+380,BusinessRejectReason,int,Code to identify reason for a Business Message Reject (j) message.
+381,GrossTradeAmt,amt,Total amount traded (e.g. CumQty (14) * AvgPx (6) ) expressed in units of currency.
+382,NoContraBrokers,int,The number of ContraBroker (375) entries.
+383,MaxMessageSize,int,Maximum number of bytes supported for a single message.
+384,NoMsgTypes,int,Number of MsgTypes in repeating group.
+385,MsgDirection,char,Specifies the direction of the messsage.
+386,NoTradingSessions,int,Number of TradingSessionIDs in repeating group.
+387,TotalVolumeTraded,qty,Total volume (quantity) traded.
+388,DiscretionInst,char,Code to identify the price a DiscretionOffset (389) is related to and should be mathematically added to.
+389,DiscretionOffset,priceoffset,Amount (signed) added to the 'related to' price specified via DiscretionInst (388) .
+390,BidID,string,Unique identifier for Bid Response (l) as assigned by broker. Uniqueness must be guaranteed within a single trading day.
+391,ClientBidID,string,Unique identifier for a Bid Request (k) as assigned by institution. Uniqueness must be guaranteed within a single trading day.
+392,ListName,string,Descriptive name for list order.
+393,TotalNumSecurities,int,Total number of securities.
+394,BidType,int,Code to identify the type of Bid Request (k) .
+395,NumTickets,int,Total number of tickets.
+396,SideValue1,amt,Amounts in currency
+397,SideValue2,amt,Amounts in currency
+398,NoBidDescriptors,int,Number of BidDescriptor entries.
+399,BidDescriptorType,int,Code to identify the type of BidDescriptor.
+400,BidDescriptor,string,BidDescriptor value. Usage depends upon BidDescriptorType (399) .
+401,SideValueInd,int,"Code to identify which ""SideValue"" the value refers to. SideValue1 and SideValue2 are used as opposed to Buy or Sell so that the basket can be quoted either way as Buy or Sell."
+402,LiquidityPctLow,float,Liquidity indicator or lower limit if TotalNumSecurities (393) > 1. Represented as a percentage.
+403,LiquidityPctHigh,float,Upper liquidity indicator if TotalNumSecurities (393) > 1. Represented as a percentage.
+404,LiquidityValue,amt,Value between LiquidityPctLow (402) and LiquidityPctHigh (403) in Currency (15)
+405,EFPTrackingError,float,Eg Used in EFP trades 12% (EFP - Exchange for Physical ). Represented as a percentage.
+406,FairValue,amt,Used in EFP trades
+407,OutsideIndexPct,float,Used in EFP trades. Represented as a percentage.
+408,ValueOfFutures,amt,Used in EFP trades
+409,LiquidityIndType,int,Code to identify the type of liquidity indicator.
+410,WtAverageLiquidity,float,Overall weighted average liquidity expressed as a % of average daily volume. Represented as a percentage.
+411,ExchangeForPhysical,bool,Indicates whether or not to exchange for phsyical.
+412,OutMainCntryUIndex,amt,Value of stocks in Currency (15)
+413,CrossPercent,float,Percentage of program that crosses in Currency (15) . Represented as a percentage.
+414,ProgRptReqs,int,Code to identify the desired frequency of progress reports.
+415,ProgPeriodInterval,int,Time in minutes between each List Status (N) report sent by SellSide. Zero means don't send status.
+416,IncTaxInd,int,Code to represent whether value is net (inclusive of tax) or gross.
+417,NumBidders,int,Indicates the total number of bidders on the list
+418,TradeType,char,Code to represent the type of trade.
+419,BasisPxType,char,Code to represent the basis price type.
+420,NoBidComponents,int,Indicates the number of list entries.
+421,Country,string,ISO Country Code in field
+422,TotNoStrikes,int,Total number of strike price entries across all messages. Should be the sum of all NoStrikes (428) in each message that has repeating strike price entries related to the same ListID (66) . Used to support fragmentation.
+423,PriceType,int,Code to represent the price type.
+424,DayOrderQty,qty,"For GT orders, the OrderQty (38) less all shares (adjusted for stock splits) that traded on previous days."
+425,DayCumQty,qty,The number of shares on a GT order that have traded today.
+426,DayAvgPx,price,The average price of shares on a GT order that have traded today.
+427,GTBookingInst,int,Code to identify whether to book out executions on a part-filled GT order on the day of execution or to accumulate.
+428,NoStrikes,int,Number of list strike price entries.
+429,ListStatusType,int,Code to represent the price type.
+430,NetGrossInd,int,Code to represent whether value is net (inclusive of tax) or gross.
+431,ListOrderStatus,int,Code to represent the status of a list order.
+432,ExpireDate,localmktdate,"Date of order expiration (last day the order can trade), always expressed in terms of the local market date. The time at which the order expires is determined by the local market's business practices"
+433,ListExecInstType,char,Identifies the type of ListExecInst (69) .
+434,CxlRejResponseTo,char,Identifies the type of request that a Order Cancel Reject (9) is in response to.
+435,UnderlyingCouponRate,float,Underlying security's CouponRate.
+436,UnderlyingContractMultiplier,float,Underlying security's ContractMultiplier.
+437,ContraTradeQty,qty,Quantity traded with the ContraBroker (375) .
+438,ContraTradeTime,utctimestamp,"Identifes the time of the trade with the ContraBroker (375) . (always expressed in UTC (Universal Time Coordinated, also known as 'GMT')"
+439,ClearingFirm,string,Firm that will clear the trade. Used if different from the executing firm.
+440,ClearingAccount,string,Supplemental accounting information forwared to clearing house/firm.
+441,LiquidityNumSecurities,int,Number of Securites between LiquidityPctLow (402) and LiquidityPctHigh (403) in Currency (15) .
+442,MultiLegReportingType,char,"Used to indicate what an Execution Report (8) represents (e.g. used with multi-leg securiteis, such as option strategies, spreads, etc.)."
+443,StrikeTime,utctimestamp,The time at which current market prices are used to determine the value of a basket.
+444,ListStatusText,string,Free format text string related to List Status (N) .
+445,EncodedListStatusTextLen,int,Byte length of encoded (non-ASCII characters) EncodedListStatusText (446) field.
+446,EncodedListStatusText,data,"Encoded (non-ASCII characters) representation of the ListStatusText (444) field in the encoded format specified via the MessageEncoding (347) field. If used, the ASCII (English) representation should also be specified in the ListStatusText (444) field."
+554,Password,string,(Coinbase Backport from FIX 4.3) Password or passphrase.
+1003,TradeID,string,(Coinbase Backport from FIX 5.0) Product unique trade id
+1057,AggressorIndicator,bool,(Coinbase Backport from FIX 5.0) Y for taker orders, N for maker orders
+7928,SelfTradePrevention,char,(Custom Coinbase Tag) D: Decrement and cancel (the default), O: Cancel resting order, N: Cancel incoming order, B:Cancel both orders. If an order is decremented due to self-trade prevention, an Execution Report will be sent to the client with ExecType=D indicating unsolicited OrderQty reduction (i.e. partial cancel).
+8013,CancelOrdersOnDisconnect,char,(Custom Coinbase Tag) S: Batch cancel all open orders placed during session; Y: Batch cancel all open orders for the current profile. The former is more performant and recommended.
+9406,DropCopyFlag,bool,(Custom Coinbase Tag) If set to Y, execution reports will be generated for all user orders (defaults to Y)
