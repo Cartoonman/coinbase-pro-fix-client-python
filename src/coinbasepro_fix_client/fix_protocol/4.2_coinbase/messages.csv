@@ -1,1 +1,49 @@
-id,name,required,optional,descriptionHEAD,Header,8;9;35;49;56;34;52,115;128;90;91;50;142;57;143;116;144;129;145;43;97;122;212;213;347;369;370,"Each administrative or application message is preceded by a standard header. The header identifies the message type, length, destination, sequence number, origination point and time"TAIL,Trailer,10,93;89,"Each message, administrative or application, is terminated by a standard trailer. The trailer is used to segregate messages and contains the three digit character representation of the CheckSum value."0,Heartbeat,10,93;89,test1,Test Request,10,93;89,test2,Resend Request,10,93;89,test3,Reject,10,93;89,test4,Sequence Reset,10,93;89,test5,Logout,10,93;89,test6,Indication of Interest,10,93;89,test7,Advertisement,10,93;89,test8,Execution Report,10,93;89,test9,Order Cancel Reject,10,93;89,testa,Quote Status Request,10,93;89,testA,Logon,10,93;89,testb,Quote Acknowledgement,10,93;89,testB,News,10,93;89,testc,Security Definition Request,10,93;89,testC,Email,10,93;89,testd,Security Definition,10,93;89,testD,Order - Single,10,93;89,teste,Security Status Request,10,93;89,testE,Order - List,10,93;89,testf,Security Status,10,93;89,testF,Order Cancel Request,10,93;89,testg,Trading Session Status Request,10,93;89,testG,Order Cancel/Replace Request,10,93;89,testh,Trading Session Status,10,93;89,testH,Order Status Request,10,93;89,testi,Mass Quote,10,93;89,testj,Business Message Reject,10,93;89,testJ,Allocation,10,93;89,testk,Bid Request,10,93;89,testK,List Cancel Request,10,93;89,testl,Bid Response,10,93;89,testL,List Execute,10,93;89,testm,List Strike Price,10,93;89,testM,List Status Request,10,93;89,testN,List Status,10,93;89,testP,Allocation ACK,10,93;89,testQ,Don't Know Trade,10,93;89,testR,Quote Request,10,93;89,testS,Quote,10,93;89,testT,Settlement Instructions,10,93;89,testV,Market Data Request,10,93;89,testW,Market Data - Snapshot/Full Refresh,10,93;89,testX,Market Data - Incremental Refresh,10,93;89,testY,Market Data Request Reject,10,93;89,testZ,Quote Cancel,10,93;89,test
+id,name,required,optional,description
+HEAD,Header,8;9;35;49;56;34;52,115;128;90;91;50;142;57;143;116;144;129;145;43;97;122;212;213;347;369;370,"Each administrative or application message is preceded by a standard header. The header identifies the message type, length, destination, sequence number, origination point and time"
+TAIL,Trailer,10,93;89,"Each message, administrative or application, is terminated by a standard trailer. The trailer is used to segregate messages and contains the three digit character representation of the CheckSum value."
+0,Heartbeat,,112,"The Heartbeat monitors the status of the communication link and identifies when the last of a string of messages was not received."
+1,Test Request,112,,"The Test Request message forces a heartbeat from the opposing application."
+2,Resend Request,7;16,,"The resend request is sent by the receiving application to initiate the retransmission of messages. This function is utilized if a sequence number gap is detected, if the receiving application lost a message, or as a function of the initialization process."
+3,Reject,45,371;372;373;58;354;355,"The Reject message should be issued when a message is received but cannot be properly processed due to a session-level rule violation. An example of when a reject may be appropriate would be the receipt of a message with invalid basic data (e.g. MsgType) which successfully passes de-encryption, CheckSum and BodyLength checks. As a rule, messages should be forwarded to the trading application for business level rejections whenever possible."
+4,Sequence Reset,36,123,"The Sequence Reset message is used by the sending application to reset the incoming sequence number on the opposing side."
+5,Logout,,58;354;355,"The Logout message initiates or confirms the termination of a FIX session. Disconnection without the exchange of Logout messages should be interpreted as an abnormal condition."
+6,Indication of Interest,23;28;55;54;27,26;65;48;22;167;200;205;201;202;206;231;223;207;106;348;349;107;350;351;44;15;62;25;130;199;104;58;354;355;60;149;215;216;217;218;219,"Indication of interest messages market merchandise which the broker is buying or selling in either a proprietary or agency capacity."
+7,Advertisement,2;5;55;4;53,3;65;48;22;167;200;205;201;202;206;231;223;207;106;348;349;107;350;351;44;15;75;60;58;354;355;149;30;336,"Advertisement messages are used to announce completed transactions."
+8,Execution Report,37;17;20;150;39;55;54;151;14;6,198;11;41;109;76;382;375;337;437;438;66;19;103;378;1;63;64;65;48;22;167;200;205;201;202;206;231;223;207;106;348;349;107;350;351;38;152;40;44;99;211;388;389;15;376;377;59;168;432;126;18;47;32;31;194;195;30;336;29;424;425;426;427;75;60;113;12;13;381;119;120;155;156;21;110;111;77;210;58;354;355;193;192;439;440;442,"The Execution Report message is used to confirm the receipt of an order, confirm changes to an existing order (i.e. accept cancel and replace requests), relay order status information, relay fill information on working orders, reject orders, and report post-trade fees calculations associated with a trade"
+9,Order Cancel Reject,37;11;41;39;434,198;109;76;66;1;60;102;58;354;355,"The Order Cancel Reject message is issued by the broker upon receipt of a cancel request or cancel/replace request message which cannot be honored."
+a,Quote Status Request,55,117;65;48;22;167;200;205;201;202;206;231;223;207;106;348;349;107;350;351;54;336,"The Quote Status Request message is used by the institution to generate an execution report that contains the quote status message back from the counterparty."
+A,Logon,98;108,95;96;141;383;384;372;385,"The Logon message authenticates a user establishing a connection to a remote system. The Logon message must be the first message sent by the application requesting to initiate a FIX session."
+b,Quote Acknowledgement,0,0,TBD
+B,News,0,0,TBD
+c,Security Definition Request,0,0,TBD
+C,Email,0,0,TBD
+d,Security Definition,0,0,TBD
+D,Order - Single,0,0,TBD
+e,Security Status Request,0,0,TBD
+E,Order - List,0,0,TBD
+f,Security Status,0,0,TBD
+F,Order Cancel Request,0,0,TBD
+g,Trading Session Status Request,0,0,TBD
+G,Order Cancel/Replace Request,0,0,TBD
+h,Trading Session Status,0,0,TBD
+H,Order Status Request,0,0,TBD
+i,Mass Quote,0,0,TBD
+j,Business Message Reject,0,0,TBD
+J,Allocation,0,0,TBD
+k,Bid Request,0,0,TBD
+K,List Cancel Request,0,0,TBD
+l,Bid Response,0,0,TBD
+L,List Execute,0,0,TBD
+m,List Strike Price,0,0,TBD
+M,List Status Request,0,0,TBD
+N,List Status,0,0,TBD
+P,Allocation ACK,0,0,TBD
+Q,Don't Know Trade,0,0,TBD
+R,Quote Request,0,0,TBD
+S,Quote,0,0,TBD
+T,Settlement Instructions,0,0,TBD
+V,Market Data Request,0,0,TBD
+W,Market Data - Snapshot/Full Refresh,0,0,TBD
+X,Market Data - Incremental Refresh,0,0,TBD
+Y,Market Data Request Reject,0,0,TBD
+Z,Quote Cancel,0,0,TBD
