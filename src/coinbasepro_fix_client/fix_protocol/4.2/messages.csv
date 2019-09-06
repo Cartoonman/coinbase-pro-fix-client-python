@@ -13,10 +13,10 @@ TAIL,Trailer,10,93;89,"Each message, administrative or application, is terminate
 9,Order Cancel Reject,37;11;41;39;434,198;109;76;66;1;60;102;58;354;355,"The Order Cancel Reject message is issued by the broker upon receipt of a cancel request or cancel/replace request message which cannot be honored."
 a,Quote Status Request,55,117;65;48;22;167;200;205;201;202;206;231;223;207;106;348;349;107;350;351;54;336,"The Quote Status Request message is used by the institution to generate an execution report that contains the quote status message back from the counterparty."
 A,Logon,98;108,95;96;141;383;384;372;385,"The Logon message authenticates a user establishing a connection to a remote system. The Logon message must be the first message sent by the application requesting to initiate a FIX session."
-b,Quote Acknowledgement,0,0,TBD
-B,News,0,0,TBD
-c,Security Definition Request,0,0,TBD
-C,Email,0,0,TBD
+b,Quote Acknowledgement,297,131;117;300;301;336;58;296;302;311;312;309;305;310;313;314;315;316;317;436;435;308;306;362;363;307;364;365;304;295;299;55;65;48;22;167;200;205;201;202;206;231;223;207;106;348;349;107;350;351;368,"An optional response to Quote, Mass Quote, Quote Cancel, and Quote Request message is the Quote Acknowledgement message."
+B,News,148;33;58,42;61;358;359;215;216;217;146;46;65;48;22;167;200;205;201;202;206;231;223;207;106;348;349;107;350;351;354;355;149;95;96,"The News message is a general free format message between the broker and institution."
+c,Security Definition Request,320;321,55;65;48;22;167;200;205;201;202;206;231;223;207;106;348;349;107;350;351;15;58;354;355;336;146;311;312;309;305;310;313;314;315;316;317;436;435;308;306;362;363;307;364;365;319;54;318,"The Security Definition Request message is used for the following: Request a specific Security to be traded with the second party, Request a list of the Security Types that can be traded with the second party, or Request a list of Securities that can be traded with the second party."
+C,Email,164;94;147;33;58,42;356;357;215;216;217;146;46;65;48;22;167;200;205;201;202;206;231;223;207;106;348;349;107;350;351;37;11;354;355;95;96,"The Email message is similar to the format and purpose of to the News message, however, it is intended for private use between two parties."
 d,Security Definition,0,0,TBD
 D,Order - Single,0,0,TBD
 e,Security Status Request,0,0,TBD
