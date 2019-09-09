@@ -20,8 +20,6 @@ class FIXContext(object):
 
         messages_file = Path(_get_fix_protocol(version, "messages.csv"))
         tags_file = Path(_get_fix_protocol(version, "tags.csv"))
-        print(messages_file)
-        print(tags_file)
         try:
             with tags_file.open() as file:
                 reader = csv.DictReader(file)
