@@ -62,6 +62,7 @@ class FIXMessageBuilder(object):
             self.desc = desc
             self.tags = defaultdict(list)
             self.fix_msg_payload = None
+            self._primed = False
 
         def ready_pkg(self):
             temp_set = self.required_tags
@@ -162,12 +163,15 @@ class FIXMessageBuilder(object):
 
     def add_tag(self, id_, data, message):
         if str(id_) in message.required_tags.union(message.optional_tags):
-            message.tags[str(id_)].append(self._gen_tag(str(id_), data))
-            return True  # Todo change this to exception
+            if not message._primed:
+                message.tags[str(id_)].append(self._gen_tag(str(id_), data))
+                return True # Change these to exceptions
+            else:
+                return False
         else:
             return False
 
-    def prepare(self, message, seq):
+    def prepare(self, message, seq, timestamp):
         # Check if ready (all req tags set in msg)
         if message.ready_pkg()[0] is not True:
             return False
@@ -176,7 +180,7 @@ class FIXMessageBuilder(object):
         self.add_tag(34, seq, message.header)
         self.add_tag(
             52,
-            str(datetime.datetime.utcnow()).replace("-", "").replace(" ", "-")[:-3],
+            timestamp,
             message.header,
         )
         self.add_tag(35, message.id_, message.header)
@@ -246,6 +250,7 @@ class FIXMessageBuilder(object):
         # Generate Checksum
         fix_msg += message.trailer.tags["10"][0].gen_fix()
         message.fix_msg_payload = fix_msg
+        message._primed = True
         return True
 
     def _get_req_tags(self, id_):
