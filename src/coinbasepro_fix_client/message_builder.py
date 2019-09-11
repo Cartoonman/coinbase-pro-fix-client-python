@@ -3,6 +3,28 @@ from collections import defaultdict
 import time, datetime
 
 
+class Error(Exception):
+    def __init__(self, message):
+        self.message = message
+
+
+class Invalid(Exception):
+    def __init__(self, message):
+        self.message = message
+
+
+class MessageNotReady(Invalid):
+    pass
+
+
+class Invalidtag(Invalid):
+    pass
+
+
+class ReadOnlyError(Error):
+    pass
+
+
 class FIXMessageBuilder(object):
     def __init__(self, FIX_Context):
         self.FIX_Context = FIX_Context
@@ -124,13 +146,13 @@ class FIXMessageBuilder(object):
         return msg
 
     def load_message(self, msg_array):
-        message_type = msg_array[2].split("=")[1]
+        message_type = msg_array[2].split("=", 1)[1]
         message = self.generate_message(message_type)
 
         # Passes
         for tag in msg_array:
-            id_ = tag.split("=")[0]
-            data = tag.split("=")[1]
+            id_ = tag.split("=", 1)[0]
+            data = tag.split("=", 1)[1]
             if id_ in message.header.required_tags.union(message.header.optional_tags):
                 self.add_tag(id_, data, message.header)
             if id_ in message.required_tags.union(message.optional_tags):
@@ -147,7 +169,7 @@ class FIXMessageBuilder(object):
             + list(message.trailer.tags.keys())
         )
         for tag in msg_array:
-            if tag.split("=")[0] not in total_msg_tags:
+            if tag.split("=", 1)[0] not in total_msg_tags:
                 print(
                     "WARN: {} NOT IN MESSAGE DEFINITION. MESSAGE: {}".format(
                         tag, message
@@ -157,22 +179,36 @@ class FIXMessageBuilder(object):
         return message
 
     def _prepare_ctrl_msg(self, ctrl_msg_def, msg_id):
+        required_tags = ctrl_msg_def["required"]
+        optional_tags = ctrl_msg_def["optional"]
+        # Fix for potentially blank entries.
+        if len(required_tags) == 1 and required_tags[0] == "":
+            required_tags = set([])
+        if len(optional_tags) == 1 and optional_tags[0] == "":
+            optional_tags = set([])
         return self.Message(
             None,
             None,
-            set(ctrl_msg_def["required"]),
-            set(ctrl_msg_def["optional"]),
+            set(required_tags),
+            set(optional_tags),
             ctrl_msg_def["id"],
             ctrl_msg_def["name"],
             ctrl_msg_def["description"],
         )
 
     def _prepare_msg(self, msg_def, header, trailer):
+        required_tags = msg_def["required"]
+        optional_tags = msg_def["optional"]
+        # Fix for potentially blank entries.
+        if len(required_tags) == 1 and required_tags[0] == "":
+            required_tags = set([])
+        if len(optional_tags) == 1 and optional_tags[0] == "":
+            optional_tags = set([])
         return self.Message(
             header,
             trailer,
-            set(msg_def["required"]),
-            set(msg_def["optional"]),
+            set(required_tags),
+            set(optional_tags),
             msg_def["id"],
             msg_def["name"],
             msg_def["description"],
@@ -195,16 +231,15 @@ class FIXMessageBuilder(object):
         if str(id_) in message.required_tags.union(message.optional_tags):
             if not message._primed:
                 message.tags[str(id_)].append(self._gen_tag(str(id_), data))
-                return True  # Change these to exceptions
             else:
-                return False
+                raise ReadOnlyError("Message cannot be modified after primed state.")
         else:
-            return False
+            raise InvalidTag(f"Tag {str(id_)} is not in Message {message.name}")
 
     def prepare(self, message, seq, timestamp):
         # Check if ready (all req tags set in msg)
         if message.ready_pkg()[0] is not True:
-            return False
+            raise MessageNotReady("Message does not pass ready_pkg() check.")
 
         # Fill in rest of Header
         self.add_tag(34, seq, message.header)
@@ -223,9 +258,7 @@ class FIXMessageBuilder(object):
         # Generate Raw Fix Msg
         fix_msg = self.gen_raw_fix(message)
         message.fix_msg_payload = fix_msg
-
         message._primed = True
-        return True
 
     def calc_body_length(self, message):
         # Calculate body length
@@ -301,6 +334,7 @@ class FIXMessageBuilder(object):
                 fix_msg += tag.gen_fix()
         # Generate Checksum
         fix_msg += message.trailer.tags["10"][0].gen_fix()
+        fix_msg = fix_msg.encode("ascii")
         return fix_msg
 
     def validate(self, message):
@@ -327,22 +361,24 @@ class FIXMessageBuilder(object):
         del_rear = None
         messages = []
         working_data_arr = [x for x in working_data.split("\x01")]
-        if working_data.count("=") == working_data.count("\x01"):
-            # Potentially valid message(s) in response. Try to decode.
-            for tag in range(len(working_data_arr)):
-                if working_data_arr[tag][:2] == "8=":
-                    pointers_front.append(tag)
-                if working_data_arr[tag][:3] == "10=":
-                    pointers_rear.append(tag)
+        for tag in range(len(working_data_arr)):
+            if working_data_arr[tag][:2] == "8=":  # Needs to be another check here
+                pointers_front.append(tag)
+            if working_data_arr[tag][:3] == "10=" and len(working_data_arr[tag]) == 6:
+                pointers_rear.append(tag)
+
         for front, rear in zip(pointers_front, pointers_rear):
             message = self.load_message(working_data_arr[front : rear + 1])
             # Check checksum and message length matches for security.
+            del_rear = rear
             if not (self.validate(message)):
-                del_rear = rear
                 continue
             else:
                 messages.append(message)
-                del_rear = rear
+
+        # Clear buffer if all we got was junk with no front tag found.
+        if len(working_data_arr) != 0 and len(pointers_front) == 0 and del_rear is None:
+            working_data_arr = []
 
         # Remove the corresponding data from original working data. (reconstruct remaining?)
         if del_rear is not None:
@@ -356,6 +392,10 @@ class FIXMessageBuilder(object):
         if len(working_data_arr) != 0:
             remainder_buffer = "\x01".join(working_data_arr)
         remainder_buffer = remainder_buffer.encode("ascii")
+
+        # Return results
+        # (messages_array, remaining string buffer)
+        return messages, remainder_buffer
 
     def _get_req_tags(self, id_):
         return {
