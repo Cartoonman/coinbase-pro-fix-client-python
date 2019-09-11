@@ -73,9 +73,6 @@ class FIXMessageBuilder(object):
             else:
                 return True, None
 
-        def gen_fix_one(self, id_):
-            return
-
         def ready_send(self):
             temp_set_header = self.header.required_tags
             for tag in self.header.tags.keys():
@@ -126,6 +123,39 @@ class FIXMessageBuilder(object):
         msg = self._prepare_msg(msg_def, header, trailer)
         return msg
 
+    def load_message(self, msg_array):
+        message_type = msg_array[2].split("=")[1]
+        message = self.generate_message(message_type)
+
+        # Passes
+        for tag in msg_array:
+            id_ = tag.split("=")[0]
+            data = tag.split("=")[1]
+            if id_ in message.header.required_tags.union(message.header.optional_tags):
+                self.add_tag(id_, data, message.header)
+            if id_ in message.required_tags.union(message.optional_tags):
+                self.add_tag(id_, data, message)
+            if id_ in message.trailer.required_tags.union(
+                message.trailer.optional_tags
+            ):
+                self.add_tag(id_, data, message.trailer)
+
+        # Check for orphaned tags.
+        total_msg_tags = set(
+            list(message.header.tags.keys())
+            + list(message.tags.keys())
+            + list(message.trailer.tags.keys())
+        )
+        for tag in msg_array:
+            if tag.split("=")[0] not in total_msg_tags:
+                print(
+                    "WARN: {} NOT IN MESSAGE DEFINITION. MESSAGE: {}".format(
+                        tag, message
+                    )
+                )
+
+        return message
+
     def _prepare_ctrl_msg(self, ctrl_msg_def, msg_id):
         return self.Message(
             None,
@@ -165,7 +195,7 @@ class FIXMessageBuilder(object):
         if str(id_) in message.required_tags.union(message.optional_tags):
             if not message._primed:
                 message.tags[str(id_)].append(self._gen_tag(str(id_), data))
-                return True # Change these to exceptions
+                return True  # Change these to exceptions
             else:
                 return False
         else:
@@ -178,13 +208,26 @@ class FIXMessageBuilder(object):
 
         # Fill in rest of Header
         self.add_tag(34, seq, message.header)
-        self.add_tag(
-            52,
-            timestamp,
-            message.header,
-        )
+        self.add_tag(52, timestamp, message.header)
         self.add_tag(35, message.id_, message.header)
 
+        body_length = self.calc_body_length(message)
+
+        self.add_tag(9, body_length, message.header)
+        self.add_tag(8, "FIX.4.2", message.header)
+
+        # Calculate CheckSum
+        checksum = self.gen_checksum(message)
+        self.add_tag(10, checksum, message.trailer)
+
+        # Generate Raw Fix Msg
+        fix_msg = self.gen_raw_fix(message)
+        message.fix_msg_payload = fix_msg
+
+        message._primed = True
+        return True
+
+    def calc_body_length(self, message):
         # Calculate body length
         body_length = sum(
             [
@@ -198,10 +241,15 @@ class FIXMessageBuilder(object):
                 for tag in tags
             ]
         )
-        self.add_tag(9, body_length, message.header)
-        self.add_tag(8, "FIX.4.2", message.header)
+        # Remove length of tags 8, 9, and 10 if already in message.
+        for id_ in ["8", "9"]:
+            if id_ in message.header.tags.keys():
+                body_length -= message.header.tags[id_][0].length()
+        if "10" in message.trailer.tags.keys():
+            body_length -= message.trailer.tags["10"][0].length()
+        return body_length
 
-        # Calculate CheckSum
+    def gen_checksum(self, message):
         checksum = sum(
             [
                 ord(char)
@@ -215,13 +263,17 @@ class FIXMessageBuilder(object):
                 for char in tag.gen_fix()
             ]
         )
-        print(checksum)
+        # Take out the checksum itself if it exists already.
+        if "10" in message.trailer.tags.keys():
+            checksum -= sum(
+                [ord(char) for char in message.trailer.tags["10"][0].gen_fix()]
+            )
         checksum = str(checksum % 256)
         while len(checksum) < 3:
             checksum = "0" + checksum
-        self.add_tag(10, checksum, message.trailer)
+        return checksum
 
-        # Save full fix msg into msg field.
+    def gen_raw_fix(self, message):
         # Generate first 3 tags
         fix_msg = (
             message.header.tags["8"][0].gen_fix()
@@ -249,9 +301,61 @@ class FIXMessageBuilder(object):
                 fix_msg += tag.gen_fix()
         # Generate Checksum
         fix_msg += message.trailer.tags["10"][0].gen_fix()
-        message.fix_msg_payload = fix_msg
-        message._primed = True
+        return fix_msg
+
+    def validate(self, message):
+        calculated_checksum = self.gen_checksum(message)
+        calculated_body_length = self.calc_body_length(message)
+        if calculated_checksum != message.trailer.tags["10"][0].get():
+            print(
+                f"CHECKSUM MISMATCH: CALCULATED {calculated_checksum}, GIVEN {message.trailer.tags['10'][0].get()}"
+            )
+            return False
+        if calculated_body_length != int(message.header.tags["9"][0].get()):
+            print(
+                (
+                    f"BODY LENGTH MISMATCH: CALCULATED {calculated_body_length}, GIVEN {message.header.tags['9'][0].get()}"
+                )
+            )
+            return False
         return True
+
+    def parse(self, input_response):
+        working_data = input_response.decode("ascii")
+        pointers_front = []
+        pointers_rear = []
+        del_rear = None
+        messages = []
+        working_data_arr = [x for x in working_data.split("\x01")]
+        if working_data.count("=") == working_data.count("\x01"):
+            # Potentially valid message(s) in response. Try to decode.
+            for tag in range(len(working_data_arr)):
+                if working_data_arr[tag][:2] == "8=":
+                    pointers_front.append(tag)
+                if working_data_arr[tag][:3] == "10=":
+                    pointers_rear.append(tag)
+        for front, rear in zip(pointers_front, pointers_rear):
+            message = self.load_message(working_data_arr[front : rear + 1])
+            # Check checksum and message length matches for security.
+            if not (self.validate(message)):
+                del_rear = rear
+                continue
+            else:
+                messages.append(message)
+                del_rear = rear
+
+        # Remove the corresponding data from original working data. (reconstruct remaining?)
+        if del_rear is not None:
+            working_data_arr = working_data_arr[del_rear + 1 :]
+        # Take care of trailing control char case.
+        if len(working_data_arr) == 1 and working_data_arr[0] == "":
+            working_data_arr = []
+
+        remainder_buffer = ""
+        # Reconstruct the remainder in buffer
+        if len(working_data_arr) != 0:
+            remainder_buffer = "\x01".join(working_data_arr)
+        remainder_buffer = remainder_buffer.encode("ascii")
 
     def _get_req_tags(self, id_):
         return {
