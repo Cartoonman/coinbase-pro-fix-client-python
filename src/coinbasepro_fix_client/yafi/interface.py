@@ -2,140 +2,140 @@
 from collections import defaultdict
 import time, datetime
 
+class Tag(object):
+    def __init__(
+        self,
+        FIX_id=None,
+        FIX_name=None,
+        FIX_type=None,
+        FIX_description=None,
+        FIX_data=None,
+    ):
+        self.data = FIX_data
+        self.id_ = FIX_id
+        self.name = FIX_name
+        self.type = FIX_type
+        self.desc = FIX_description
 
-class Error(Exception):
-    def __init__(self, message):
-        self.message = message
+    def set(self, x):
+        self.check(x)
+        self.data = repr(x)
+
+    def get(self):
+        return self.data
+
+    def gen_fix(self):
+        return str(self.id_) + "=" + str(self.data) + "\x01"
+
+    def length(self):
+        return len(self.gen_fix())
+
+    def is_none(self):
+        return self.data == None
+
+    def __repr__(self):
+        return "Tag [{}({}): {}]".format(self.name, self.id_, self.data)
 
 
-class Invalid(Exception):
-    def __init__(self, message):
-        self.message = message
+class Message(object):
+    def __init__(self, header, trailer, req_tags, opt_tags, groups, id_, name, context):
+        self.header = header
+        self.required_tags = req_tags
+        self.optional_tags = opt_tags
+        self.groups = groups
+        self.trailer = trailer
+        self.id_ = id_
+        self.name = name
+        self.data = {}
+        self.fix_msg_payload = None
+        self._primed = False
+
+    def __getitem__(self, key):
+        if key in self.data:
+            return self.data[key]
+        else:
+            raise KeyError
+
+    def __setitem__(self, key, value):
+        self.data[key] = str(value)
+
+    def get_group_template(self, tag_id):
+        if key in self.groups:
+            return self.data[key]
+        else:
+            raise KeyError
+
+    def ready_pkg(self):
+        temp_set = self.required_tags
+        for tag in self.tags.keys():
+            temp_set.discard(tag)
+        if len(temp_set) != 0:
+            return False, temp_set
+        else:
+            return True, None
+
+    def ready_send(self):
+        temp_set_header = self.header.required_tags
+        for tag in self.header.tags.keys():
+            temp_set_header.discard(tag)
+        if len(temp_set_header) != 0:
+            return False, "HEAD", temp_set_header
+
+        pkg_state, msg_set = self.ready_pkg()
+        if not pkg_state:
+            return False, "MSG", msg_set
+
+        temp_set_trailer = self.trailer.required_tags
+        for tag in self.trailer.tags.keys():
+            temp_set_trailer.discard(tag)
+        if len(temp_set_trailer) != 0:
+            return False, "TAIL", temp_set_trailer
+
+        return True, None, None
+
+    def __str__(self):
+        print_msg = "Message [{}({})]: \n[\n\t".format(self.name, self.id_)
+        print_msg += "HEADER: \n\t"
+        for tags in self.header.tags.values():
+            for tag in tags:
+                print_msg += repr(tag)
+                print_msg += "\n\t"
+        print_msg += "MSG: \n\t"
+        for tags in self.tags.values():
+            for tag in tags:
+                print_msg += repr(tag)
+                print_msg += "\n\t"
+        print_msg += "TRAILER: \n\t"
+        for tags in self.trailer.tags.values():
+            for tag in tags:
+                print_msg += repr(tag)
+                print_msg += "\n\t"
+        print_msg += "\n]\n"
+
+        return print_msg
 
 
-class MessageNotReady(Invalid):
-    pass
 
 
-class Invalidtag(Invalid):
-    pass
-
-
-class ReadOnlyError(Error):
-    pass
-
-
-class FIXMessageBuilder(object):
-    def __init__(self, FIX_Context):
-        self.FIX_Context = FIX_Context
-
-    class Tag(object):
-        def __init__(
-            self,
-            FIX_id=None,
-            FIX_name=None,
-            FIX_type=None,
-            FIX_description=None,
-            FIX_data=None,
-        ):
-            self.data = FIX_data
-            self.id_ = FIX_id
-            self.name = FIX_name
-            self.type = FIX_type
-            self.desc = FIX_description
-
-        def set(self, x):
-            self.check(x)
-            self.data = repr(x)
-
-        def get(self):
-            return self.data
-
-        def gen_fix(self):
-            return str(self.id_) + "=" + str(self.data) + "\x01"
-
-        def length(self):
-            return len(self.gen_fix())
-
-        def is_none(self):
-            return self.data == None
-
-        def __repr__(self):
-            return "Tag [{}({}): {}]".format(self.name, self.id_, self.data)
-
-        def __str__(self):
-            return """-----------   \
-                \nTag:  {} {} ,        \
-                \nType: {} ,        \
-                \nData: {} ,        \
-                \nDescription: {}   \
-                """.format(
-                self.id_, self.name, self.type, self.data, self.desc
-            )
-
-    class Message(object):
-        def __init__(self, header, trailer, req_tags, opt_tags, id_, name, desc):
-            self.header = header
-            self.required_tags = req_tags
-            self.optional_tags = opt_tags
-            self.trailer = trailer
-            self.id_ = id_
-            self.name = name
-            self.desc = desc
-            self.tags = defaultdict(list)
-            self.fix_msg_payload = None
-            self._primed = False
-
-        def ready_pkg(self):
-            temp_set = self.required_tags
-            for tag in self.tags.keys():
-                temp_set.discard(tag)
-            if len(temp_set) != 0:
-                return False, temp_set
-            else:
-                return True, None
-
-        def ready_send(self):
-            temp_set_header = self.header.required_tags
-            for tag in self.header.tags.keys():
-                temp_set_header.discard(tag)
-            if len(temp_set_header) != 0:
-                return False, "HEAD", temp_set_header
-
-            pkg_state, msg_set = self.ready_pkg()
-            if not pkg_state:
-                return False, "MSG", msg_set
-
-            temp_set_trailer = self.trailer.required_tags
-            for tag in self.trailer.tags.keys():
-                temp_set_trailer.discard(tag)
-            if len(temp_set_trailer) != 0:
-                return False, "TAIL", temp_set_trailer
-
-            return True, None, None
-
-        def __str__(self):
-            print_msg = "Message [{}({})]: \n[\n\t".format(self.name, self.id_)
-            print_msg += "HEADER: \n\t"
-            for tags in self.header.tags.values():
-                for tag in tags:
-                    print_msg += repr(tag)
-                    print_msg += "\n\t"
-            print_msg += "MSG: \n\t"
-            for tags in self.tags.values():
-                for tag in tags:
-                    print_msg += repr(tag)
-                    print_msg += "\n\t"
-            print_msg += "TRAILER: \n\t"
-            for tags in self.trailer.tags.values():
-                for tag in tags:
-                    print_msg += repr(tag)
-                    print_msg += "\n\t"
-            print_msg += "\n]\n"
-
-            return print_msg
+class FIXInterface(object):
+    def __init__(self, context):
+        self._context = context
 
     def generate_message(self, id_in):
+
+        # def __init__(self, header, trailer, req_tags, opt_tags, groups, id_, name, context):
+
+
+
+        # Get name
+        if id_in in self._context._protocol_msgs_admin:
+            id_ = id_in
+            name = self._context._protocol_msgs_admin
+        name = self.FIX_Context._protocol_
+
+
+        return Message(header, trailer, req_tags, opt_tags, groups, id_, name, self._context)
+
         header_def = self.FIX_Context._protocol_msgs["HEAD"]
         trailer_def = self.FIX_Context._protocol_msgs["TAIL"]
         msg_def = self.FIX_Context._protocol_msgs[id_in]

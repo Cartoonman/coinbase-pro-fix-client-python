@@ -9,7 +9,7 @@ import hashlib
 import base64
 import datetime
 from queue import Queue, Empty
-from coinbasepro_fix_client import FIXContext, FIXMessageBuilder
+from yafi import FIXContext, FIXInterface
 
 # Adapted from great example:
 # https://stackoverflow.com/questions/47110454/how-to-send-fix-logon-message-with-python-to-gdax/
@@ -34,19 +34,19 @@ class CoinbaseFIXClient(object):
         passphrase,
         key,
         secret,
-        fix_protocol_version="4.2_coinbase",
+        fix_protocol_version="4.2",
         host="fix.pro.coinbase.com",
         port=4198,
     ):
         self._context = FIXContext(fix_protocol_version)
-        self._builder = FIXMessageBuilder(self._context)
+        self._interface = FIXInterface(self._context)
         if None in [passphrase, key, secret]:
             print("Error: one or more credentials were missing")
         self.host = host
         self.port = port
         self.tx_seq_counter = 1
         self.rx_seq_counter = 1
-        self.rx_buffer = ThreadSafeDefaultDict(Queue)
+        self.rx_buffer = ThreadSafeDefaultDict(lambda:Queue(10))
         self.tx_buffer = Queue(10)
         self.shutdown_lock = threading.Lock()
         self.tx_counter_lock = threading.Lock()
@@ -92,26 +92,26 @@ class CoinbaseFIXClient(object):
 
     def login(self):
         self._initialize_connection()
-        message = self._builder.generate_message("A")
+        message = self._interface.generate_message("A")
         seq = self.increment_tx_counter()
         timestamp = (
             str(datetime.datetime.utcnow()).replace("-", "").replace(" ", "-")[:-3]
         )
-        self._builder.add_tag(98, 0, message)
-        self._builder.add_tag(108, 15, message)
-        self._builder.add_tag(49, self.api_key, message.header)
-        self._builder.add_tag(56, "Coinbase", message.header)
-        self._builder.add_tag(554, self.passphrase, message)
-        self._builder.add_tag(8013, "S", message)
-        self._builder.add_tag(9406, "N", message)
-        self._builder.add_tag(
+        self._interface.add_tag(98, 0, message)
+        self._interface.add_tag(108, 1, message)
+        self._interface.add_tag(49, self.api_key, message.header)
+        self._interface.add_tag(56, "Coinbase", message.header)
+        self._interface.add_tag(554, self.passphrase, message)
+        self._interface.add_tag(8013, "S", message)
+        self._interface.add_tag(9406, "N", message)
+        self._interface.add_tag(
             96,
             self._hmac_sign(
                 timestamp, "A", str(seq), self.api_key, self.passphrase, self.secret
             ),
             message,
         )
-        self._builder.prepare(message, seq, timestamp)
+        self._interface.prepare(message, seq, timestamp)
         self.tx_buffer.put(message)
         try:
             message = self.rx_buffer["A"].get(timeout=1)
@@ -120,17 +120,18 @@ class CoinbaseFIXClient(object):
                 message = self.rx_buffer["3"].get(timeout=1)
             except Empty:
                 raise Exception("Login Failed. Unknown Error.")
-        print(message)
+            raise Exception(f"Login Failed, Reject Message Received: {message}")
+        
 
     def logout(self):
-        message = self._builder.generate_message("5")
+        message = self._interface.generate_message("5")
         seq = self.increment_tx_counter()
         timestamp = (
             str(datetime.datetime.utcnow()).replace("-", "").replace(" ", "-")[:-3]
         )
-        self._builder.add_tag(49, self.api_key, message.header)
-        self._builder.add_tag(56, "Coinbase", message.header)
-        self._builder.prepare(message, seq, timestamp)
+        self._interface.add_tag(49, self.api_key, message.header)
+        self._interface.add_tag(56, "Coinbase", message.header)
+        self._interface.prepare(message, seq, timestamp)
         self.tx_buffer.put(message)
         try:
             message = self.rx_buffer["5"].get(timeout=1)
@@ -139,8 +140,9 @@ class CoinbaseFIXClient(object):
                 message = self.rx_buffer["3"].get(timeout=1)
             except Empty:
                 raise Exception("Logout Failed. Unknown Error.")
-        print(message)
-        self._close_connection()
+            raise Exception(f"Login Failed, Reject Message Received: {message}")
+        finally:
+            self._close_connection()
 
     def _hmac_sign(self, t, msg_type, seq_num, api_key, password, secret):
         message = "\x01".join(
@@ -154,8 +156,8 @@ class CoinbaseFIXClient(object):
         response = b""
         while True:
             net_response = self.ssl_sock.recv(4096)
-            if len(net_response) == 0:
-                print("CONNECTION CLOSED ON RX THREAD. SIGNAL DONE")
+            if len(net_response) == 0 or self.shutdown:
+                print("RX SHUTDOWN")
                 with self.shutdown_lock:
                     self.shutdown = True
                 break
@@ -163,7 +165,7 @@ class CoinbaseFIXClient(object):
             print(f"RECEIVED {response}")
             # Pull out msgs
             # Place on msg dict (of queues) with lock keeping accesses correct between threads.
-            messages, response = self._builder.parse(response)
+            messages, response = self._interface.parse(response)
             for message in messages:
                 assert (
                     int(message.header.tags["34"][0].get())
@@ -210,16 +212,16 @@ class CoinbaseFIXClient(object):
             hb_msg = None
 
     def heartbeat(self, req_id=None):
-        message = self._builder.generate_message("0")
+        message = self._interface.generate_message("0")
         seq = self.increment_tx_counter()
         timestamp = (
             str(datetime.datetime.utcnow()).replace("-", "").replace(" ", "-")[:-3]
         )
-        self._builder.add_tag(49, self.api_key, message.header)
-        self._builder.add_tag(56, "Coinbase", message.header)
+        self._interface.add_tag(49, self.api_key, message.header)
+        self._interface.add_tag(56, "Coinbase", message.header)
         if req_id is not None:
-            self._builder.add_tag(112, req_id, message)
-        self._builder.prepare(message, seq, timestamp)
+            self._interface.add_tag(112, req_id, message)
+        self._interface.prepare(message, seq, timestamp)
         return message
 
     def increment_tx_counter(self):

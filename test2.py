@@ -65,7 +65,13 @@ context = FIXContext("4.2_coinbase")
 msg_bldr = FIXMessageBuilder(context)
 print("SENDING")
 [
-    print(msg_bldr.decode(x.split("=")[0]) + " = " + x.split("=")[1])
+    print(
+        msg_bldr.decode(x.split("=")[0])
+        + "("
+        + x.split("=")[0]
+        + ") = "
+        + x.split("=")[1]
+    )
     for x in logon.split("\x01")[:-1]
 ]
 
@@ -73,8 +79,16 @@ logon = logon.encode("ascii")
 ssl_sock.sendall(logon)
 print("GETTING")
 response = ssl_sock.recv(4096)
+print(response)
 response = response.decode("ascii")
+print(response)
 [
-    print(msg_bldr.decode(x.split("=")[0]) + " = " + x.split("=")[1])
+    print(
+        msg_bldr.decode(x.split("=")[0])
+        + "("
+        + x.split("=")[0]
+        + ") = "
+        + x.split("=")[1]
+    )
     for x in response.split("\x01")[:-1]
 ]
