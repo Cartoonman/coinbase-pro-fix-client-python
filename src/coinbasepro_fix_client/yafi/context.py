@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 from pathlib import Path
 import xmltodict
+from collections import OrderedDict
 
 import os
 
@@ -9,8 +10,7 @@ _ROOT = os.path.abspath(os.path.dirname(__file__))
 class FIXContext(object):
     def __init__(self, protocol_descriptor, input_mode='quickfix'): #TODO split all dictionaries into id/name keys, then merge them into main dict for each.
         self.version = None
-        self._protocol_tags_name = {}   # name: (num, type)
-        self._protocol_tags_num = {}    # num: (name, type)
+        self._protocol_tags = {}        # name: {id, type} / id: {name, type}
         self._protocol_msgs_admin = {}  # msgtype: (name, {num: req})
         self._protocol_msgs_app = {}    # msgtype: (name, {num: req})
         self._protocol_header = {}      # num: req
@@ -31,10 +31,13 @@ class FIXContext(object):
                 # Extract version
                 self.version = protocol_dict['@type'] + '.' + protocol_dict['@major'] + "." + protocol_dict['@minor']
 
-
+                protocol_tags_name = {}
+                protocol_tags_num = {}
                 for tag in protocol_dict['fields']['field']:
-                    self._protocol_tags_name[tag['@name']] = (int(tag['@number']), tag['@type'])
-                    self._protocol_tags_num[int(tag['@number'])] = (tag['@name'], tag['@type'])
+                    protocol_tags_name[tag['@name']] = {'n_id': int(tag['@number']), 'd_type': tag['@type']}
+                    protocol_tags_num[int(tag['@number'])] = {'name': tag['@name'], 'd_type': tag['@type']}
+                    self._protocol_tags.update(protocol_tags_name)
+                    self._protocol_tags.update(protocol_tags_num)
 
                 for message in protocol_dict['messages']['message']:
                     tags = {}
@@ -54,9 +57,9 @@ class FIXContext(object):
                     except KeyError:
                         pass
                     if message['@msgcat'] == 'admin':
-                        self._protocol_msgs_admin[message['@msgtype']] = (message['@name'], tags)
+                        self._protocol_msgs_admin[message['@msgtype']] = {'name': message['@name'], 'tags': tags}
                     elif message['@msgcat'] == 'app':
-                        self._protocol_msgs_app[message['@msgtype']] = (message['@name'], tags)
+                        self._protocol_msgs_app[message['@msgtype']] = {'name': message['@name'], 'tags': tags}
                 
                 for field in protocol_dict['header']['field']:
                     self._protocol_header[field['@name']] = field['@required']
@@ -74,21 +77,20 @@ class FIXContext(object):
 
     def _recurse_groups(self, group):
         group_dict = {}
-        group_dict[group['@name']] = [group['@required'], {}]
+        group_dict[group['@name']] = {'required': group['@required'], 'members': OrderedDict()}
         if isinstance(group['field'], list):
             for tag in group['field']:
-                group_dict[group['@name']][1][tag['@name']] = tag['@required']
+                group_dict[group['@name']]['members'][tag['@name']] = tag['@required']
         else:
-            group_dict[group['@name']][1][group['field']['@name']] = group['field']['@required']
+            group_dict[group['@name']]['members'][group['field']['@name']] = group['field']['@required']
         try:
             if isinstance(group['group'], list):
                 for subgroup in group['group']:
-                    group_dict[group['@name']][1].update(self._recurse_groups(subgroup))
+                    group_dict[group['@name']]['members'].update(self._recurse_groups(subgroup))
             else:
-                group_dict[group['@name']][1].update(self._recurse_groups(group['group']))
+                group_dict[group['@name']]['members'].update(self._recurse_groups(group['group']))
         except KeyError:
             pass
-        group_dict[group['@name']] = tuple(group_dict[group['@name']])
         return group_dict
 
 
