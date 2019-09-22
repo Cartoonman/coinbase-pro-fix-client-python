@@ -9,7 +9,7 @@ import hashlib
 import base64
 import datetime
 from queue import Queue, Empty
-from yafi import FIXContext, FIXInterface
+from .yafi import FIXContext, FIXInterface
 
 # Adapted from great example:
 # https://stackoverflow.com/questions/47110454/how-to-send-fix-logon-message-with-python-to-gdax/
@@ -46,7 +46,7 @@ class CoinbaseFIXClient(object):
         self.port = port
         self.tx_seq_counter = 1
         self.rx_seq_counter = 1
-        self.rx_buffer = ThreadSafeDefaultDict(lambda:Queue(10))
+        self.rx_buffer = ThreadSafeDefaultDict(lambda: Queue(10))
         self.tx_buffer = Queue(10)
         self.shutdown_lock = threading.Lock()
         self.tx_counter_lock = threading.Lock()
@@ -121,7 +121,6 @@ class CoinbaseFIXClient(object):
             except Empty:
                 raise Exception("Login Failed. Unknown Error.")
             raise Exception(f"Login Failed, Reject Message Received: {message}")
-        
 
     def logout(self):
         message = self._interface.generate_message("5")

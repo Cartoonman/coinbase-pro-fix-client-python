@@ -1,6 +1,51 @@
 #!/usr/bin/env python
-from collections import defaultdict
+from collections import defaultdict, OrderedDict, Callable
 import time, datetime
+
+
+class DefaultOrderedDict(OrderedDict):
+    # Source: http://stackoverflow.com/a/6190500/562769
+    def __init__(self, default_factory=None, *a, **kw):
+        if (default_factory is not None and not isinstance(default_factory, Callable)):
+            raise TypeError('first argument must be callable')
+        OrderedDict.__init__(self, *a, **kw)
+        self.default_factory = default_factory
+
+    def __getitem__(self, key):
+        try:
+            return OrderedDict.__getitem__(self, key)
+        except KeyError:
+            return self.__missing__(key)
+
+    def __missing__(self, key):
+        if self.default_factory is None:
+            raise KeyError(key)
+        self[key] = value = self.default_factory()
+        return value
+
+    def __reduce__(self):
+        if self.default_factory is None:
+            args = tuple()
+        else:
+            args = self.default_factory,
+        return type(self), args, None, None, self.items()
+
+    def copy(self):
+        return self.__copy__()
+
+    def __copy__(self):
+        return type(self)(self.default_factory, self)
+
+    def __deepcopy__(self, memo):
+        import copy
+        return type(self)(self.default_factory,
+                          copy.deepcopy(self.items()))
+
+    def __repr__(self):
+        return 'OrderedDefaultDict(%s, %s)' % (self.default_factory,
+                                               OrderedDict.__repr__(self))
+
+
 
 class Tag(object):
     def __init__(
@@ -8,20 +53,18 @@ class Tag(object):
         FIX_id=None,
         FIX_name=None,
         FIX_type=None,
-        FIX_description=None,
         FIX_data=None,
     ):
         self.data = FIX_data
         self.id_ = FIX_id
         self.name = FIX_name
         self.type = FIX_type
-        self.desc = FIX_description
 
-    def set(self, x):
-        self.check(x)
-        self.data = repr(x)
+    def set_data(self, x):
+        # self.check(x) TODO
+        self.data = x
 
-    def get(self):
+    def get_data(self):
         return self.data
 
     def gen_fix(self):
@@ -36,28 +79,166 @@ class Tag(object):
     def __repr__(self):
         return "Tag [{}({}): {}]".format(self.name, self.id_, self.data)
 
-
-class Message(object):
-    def __init__(self, header, trailer, req_tags, opt_tags, groups, id_, name, context):
-        self.header = header
-        self.required_tags = req_tags
-        self.optional_tags = opt_tags
-        self.groups = groups
-        self.trailer = trailer
+    
+class Group(object):
+    def __init__(self, id_, name, group_def, tag_context):
+        self.group_def = group_def
+        self.data = DefaultOrderedDict(dict)
+        self.tag_dict = tag_context
         self.id_ = id_
         self.name = name
-        self.data = {}
-        self.fix_msg_payload = None
-        self._primed = False
+        self.subgroups = {}
+        for k, v in self.group_def.items():
+            if 'members' in v:
+                self.subgroups[k] = Group(k, self.tag_dict[k]['name'], v['members'], tag_context)
+                self.data[k]['members'] = []
+
+    def add_subgroup(self, group):
+        if group.id_ in self.subgroups and group.id_ in self.group_def:
+            self.data[group.id_]['members'].append(group)
+
 
     def __getitem__(self, key):
-        if key in self.data:
-            return self.data[key]
+        if isinstance(key, str):
+            try:
+                key = int(key)
+            except ValueError:
+                key = self.tag_dict[key]['n_id']
+        if key in self.group_def:
+            return data[key]['data']
+        elif key in self.tag_dict:
+            pass
+            # Exception key not in dict (keyerror)
         else:
-            raise KeyError
+            pass
+            # Exception key invalid
 
     def __setitem__(self, key, value):
-        self.data[key] = str(value)
+        if isinstance(key, str):
+            try:
+                key = int(key)
+            except ValueError:
+                key = self.tag_dict[key]['n_id'] 
+
+        if key in group_def:
+            self.data[key]['data'] = value
+            return
+        else:
+            # TODO issue warning
+            return
+
+
+
+
+
+
+msg = gen_message(fdsfds)
+group = msg.get_group_template('NoOrders')
+group.add_tag....
+group.get_subgroups()
+
+message.get_group_template()
+# fill group 
+group.member.set()
+group.get_subgroup_template()
+group.set_subgroup()
+message.add_group(group)
+message.add_group(group)
+group{
+    defmine members
+
+}
+
+
+tags :
+    452: data: Tag()
+    623: data: Tag() 
+         member: [
+        {
+            5: Tag()
+            645: Tag()
+            78: Tag() [
+                {
+                    85: Tag()
+                    6456: Tag()
+                },
+                {
+                    85: Tag()
+                    6456: Tag()
+                },
+            ]
+        },
+        {
+            5: Tag()
+            645: Tag()
+            78: Tag() [
+                {
+                    85: Tag()
+                    6456: Tag()
+                },
+                {
+                    85: Tag()
+                    6456: Tag()
+                },
+            ]
+        },
+    ]
+
+class Message(object):
+    def __init__(self, header, trailer, req_tags, opt_tags, groups, msg_cat, id_, name, tag_context):
+        self.header_def = header
+        self.required_tags_def = req_tags
+        self.optional_tags_def = opt_tags
+        self.trailer_def = trailer
+        self.groups = groups
+        self.id_ = id_
+        self.name = name
+        self.data = {'header': DefaultOrderedDict(dict), 'tags': DefaultOrderedDict(dict), 'trailer': DefaultOrderedDict(dict)}
+        self.fix_msg_payload = None
+        self.tag_dict = tag_context
+
+    def __getitem__(self, key):
+        if isinstance(key, str):
+            try:
+                key = int(key)
+            except ValueError:
+                key = self.tag_dict[key]['n_id']
+        merged_data = {**self.data['header'], **self.data['tags'], **self.data['trailer']}
+        if key in merged_data:
+            return merged_data[key]['data']
+        elif key in self.tag_dict:
+            pass
+            # Exception key not in dict (keyerror)
+        else:
+            pass
+            # Exception key invalid
+
+    def __setitem__(self, key, value):
+        if isinstance(key, str):
+            try:
+                key = int(key)
+            except ValueError:
+                key = self.tag_dict[key]['n_id']
+
+        if key in self.header_def:
+            self.data['header'][key]['data'] = value
+            return
+        elif key in self.trailer_def:
+            self.data['trailer'][key]['data'] = value
+            return         
+        elif key in {**self.required_tags_def, **self.optional_tags_def}:
+            self.data['tags'][key]['data'] = value
+            return
+        else:
+            # TODO issue warning
+            return
+
+    def add_group(self, group):
+        if group.id_ in self.groups and group.id_ in {**self.req_tags, **self.opt_tags}:
+            if not isinstance(self.data['tags'][group.id_]['members'], list):
+                self.data['tags'][group.id_]['members'] = []
+            self.data['tags'][group.id_]['members'].append(group)
+
 
     def get_group_template(self, tag_id):
         if key in self.groups:
@@ -96,7 +277,7 @@ class Message(object):
     def __str__(self):
         print_msg = "Message [{}({})]: \n[\n\t".format(self.name, self.id_)
         print_msg += "HEADER: \n\t"
-        for tags in self.header.tags.values():
+        for tags in self.data['header'].tags.values():
             for tag in tags:
                 print_msg += repr(tag)
                 print_msg += "\n\t"
@@ -115,35 +296,54 @@ class Message(object):
         return print_msg
 
 
-
-
 class FIXInterface(object):
     def __init__(self, context):
         self._context = context
 
     def generate_message(self, id_in):
+        # Check if name is in context
+        if id_in in self._context._protocol_msgs['admin']:
+            msg_cat = 'admin'
+        elif id_in in self._context._protocol_msgs['app']:
+            msg_cat = 'app'
+        else:
+            pass
+            # throw exception message invalid
 
-        # def __init__(self, header, trailer, req_tags, opt_tags, groups, id_, name, context):
+        # Check if we have name or ID
+        msg_def = self._context._protocol_msgs[msg_cat]
+        if 'name' in msg_def:
+            msg_type = id_in
+            name = msg_def['name']
+        elif 'msgtype' in msg_def:
+            msg_type = msg_def['msgtype']
+            name = id_in
+        else:
+            pass
+            # throw unknown exception
 
+        # Set Header and Trailer Defs
+        header = self._context._protocol_header
+        trailer = self._context._protocol_trailer
 
+        # Set req and opt tags
+        req_tags = {'tags_name': {}, 'tags_id': {}}
+        opt_tags = {'tags_name': {}, 'tags_id': {}}
 
-        # Get name
-        if id_in in self._context._protocol_msgs_admin:
-            id_ = id_in
-            name = self._context._protocol_msgs_admin
-        name = self.FIX_Context._protocol_
+        req_tags['tags_name'].update(dict(filter(lambda x: x[1]['required'] == 'Y', self._context._protocol_msgs[msg_cat][msg_type]['tags_name'].items())))
+        req_tags['tags_id'].update(dict(filter(lambda x: x[1]['required'] == 'Y', self._context._protocol_msgs[msg_cat][msg_type]['tags_id'].items())))
+        opt_tags['tags_name'].update(dict(filter(lambda x: x[1]['required'] == 'N', self._context._protocol_msgs[msg_cat][msg_type]['tags_name'].items())))
+        opt_tags['tags_id'].update(dict(filter(lambda x: x[1]['required'] == 'N', self._context._protocol_msgs[msg_cat][msg_type]['tags_id'].items())))
 
+        merged_tags_id = {**req_tags['tags_id'], **opt_tags['tags_id']}
+        groups = {}
+        for k, v in merged_tags_id.items():
+            if 'members' in v:
+                groups[k] = v['members']
 
-        return Message(header, trailer, req_tags, opt_tags, groups, id_, name, self._context)
-
-        header_def = self.FIX_Context._protocol_msgs["HEAD"]
-        trailer_def = self.FIX_Context._protocol_msgs["TAIL"]
-        msg_def = self.FIX_Context._protocol_msgs[id_in]
-
-        header = self._prepare_ctrl_msg(header_def, id_in)
-        trailer = self._prepare_ctrl_msg(trailer_def, None)
-        msg = self._prepare_msg(msg_def, header, trailer)
-        return msg
+        return Message(
+            header=header, trailer=trailer, req_tags=req_tags, opt_tags=opt_tags, groups=groups id_=msg_type, name=name, msg_cat=msg_cat, tag_context=self._context._protocol_tags
+        )
 
     def load_message(self, msg_array):
         message_type = msg_array[2].split("=", 1)[1]
