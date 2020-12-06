@@ -1,6 +1,13 @@
 # coinbase-pro-fix-client-python
 FIX Client Implementation for Coinbase Pro, written in Python.
 
+## Install
+
+To install for development:
+``` shell
+pip install -e .
+```
+
 ## TODOS
 * Refactor handling of tags in messages so we don't have to keep doing [0] for singular tags. (how to deal with repeating tags)
 * Cleanup and properly scope the FIX Implementation component of this client (should be barebones, limit it's scope)
